@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include <unicode/uregex.h>
+#include <unicode/ustring.h>
 #include <unicode/utf8.h>
 
 

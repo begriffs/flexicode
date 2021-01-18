@@ -11,8 +11,6 @@
 #define CODEPOINT_MAX 0xF0000
 #define UTF8_LEN 4
 
-bool bytematch[UTF8_LEN][UCHAR_MAX];
-
 int main(int argc, char **argv)
 {
 	UChar32 s[2] = {0};

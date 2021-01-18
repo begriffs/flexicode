@@ -8,11 +8,6 @@
 #include <unicode/ustring.h>
 #include <unicode/utf8.h>
 
-
-/*
- * ([a-c]|[d-f]|...|[x-z])(...)(...)
- */
-
 #define CODEPOINT_MAX 0xF0000
 #define UTF8_LEN 4
 
@@ -44,7 +39,6 @@ int main(int argc, char **argv)
 	bool first_streak = true;
 
 	size_t written = 0, written_prev = 0;
-	putchar('(');
 	for (s[0] = 1; s[0] < CODEPOINT_MAX; s[0]++)
 	{
 		unsigned char bytes[UTF8_LEN] = {0};
@@ -87,7 +81,7 @@ int main(int argc, char **argv)
 		memcpy(bytes_prev, bytes, sizeof bytes);
 		written_prev = written;
 	}
-	puts(")");
+	putchar('\n');
 	uregex_close(r);
 	return EXIT_SUCCESS;
 }

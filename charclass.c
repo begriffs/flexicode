@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <unicode/uregex.h>
 #include <unicode/ustring.h>
@@ -38,6 +39,11 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	unsigned char bytes_first[UTF8_LEN] = {0},
+	              bytes_prev[UTF8_LEN] = {0};
+	bool first_streak = true;
+
+	putchar('(');
 	for (s[0] = 1; s[0] < CODEPOINT_MAX; s[0]++)
 	{
 		unsigned char bytes[UTF8_LEN] = {0};
@@ -56,11 +62,30 @@ int main(int argc, char **argv)
 		U8_APPEND(bytes, written, UTF8_LEN, s[0], err);
 		if (err)
 		{
-			fprintf(stderr, "Skipping invalid character: %ld\n", (long)s[0]);
+			fprintf(stderr, "Skipping invalid character: %ld|", (long)s[0]);
 			continue;
 		}
-		printf("%2x %2x %2x %2x\n", bytes[0], bytes[1], bytes[2], bytes[3]);
+		if (memcmp(bytes_prev, bytes, written-1) != 0 ||
+			bytes[written-1]-bytes_prev[written-1] != 1)
+		{
+			if (bytes_prev[0])
+			{
+				if (!first_streak)
+					putchar('|');
+				first_streak = false;
+				for (size_t i = 0; i < written-1; i++)
+					printf("\\x%02x", bytes_prev[i]);
+				if (bytes_first[written-1] == bytes_prev[written-1])
+					printf("\\x%02x", bytes_first[written-1]);
+				else
+					printf("[\\x%02x-\\x%02x]",
+							bytes_first[written-1], bytes_prev[written-1]);
+			}
+			memcpy(bytes_first, bytes, sizeof bytes);
+		}
+		memcpy(bytes_prev, bytes, sizeof bytes);
 	}
+	puts(")");
 	uregex_close(r);
 	return EXIT_SUCCESS;
 }

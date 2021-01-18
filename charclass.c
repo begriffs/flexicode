@@ -21,7 +21,8 @@ int main(int argc, char **argv)
 {
 	UChar32 s[2] = {0};
 	URegularExpression *r;
-	UErrorCode status;
+	UParseError pe;
+	UErrorCode status = U_ZERO_ERROR;
 
 	if (argc != 2)
 	{
@@ -29,10 +30,11 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	r = uregex_openC(argv[1], 0, NULL, &status);
+	r = uregex_openC(argv[1], 0, &pe, &status);
 	if (U_FAILURE(status))
 	{
-		fputs("Failed to parse regex\n", stderr);
+		fprintf(stderr, "Failed to parse regex: %s\n", argv[1]);
+		fprintf(stderr, "Line %d, col %d\n", pe.line, pe.offset);
 		return EXIT_FAILURE;
 	}
 
@@ -40,15 +42,13 @@ int main(int argc, char **argv)
 	{
 		unsigned char bytes[UTF8_LEN] = {0};
 		UChar haystack[UTF8_LEN] = {0};
-		size_t i, written = 0;
+		size_t written = 0;
 		UBool err = FALSE;
 
+		status = U_ZERO_ERROR;
 		u_strFromUTF32(haystack, UTF8_LEN, NULL, s, -1, &status);
 		if (U_FAILURE(status))
-		{
-			fprintf(stderr, "Couldn't convert to utf-16: %ld\n", (long)s[0]);
 			continue;
-		}
 		uregex_setText(r, haystack, -1, &status);
 		if (uregex_matches(r, -1, &status) == FALSE /* ICU bool */)
 			continue;
@@ -59,8 +59,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Skipping invalid character: %ld\n", (long)s[0]);
 			continue;
 		}
-		for (i = 0; i < written; i++)
-			bytematch[i][bytes[i]] = true;
+		printf("%2x %2x %2x %2x\n", bytes[0], bytes[1], bytes[2], bytes[3]);
 	}
 	uregex_close(r);
 	return EXIT_SUCCESS;

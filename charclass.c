@@ -43,13 +43,14 @@ int main(int argc, char **argv)
 	              bytes_prev[UTF8_LEN] = {0};
 	bool first_streak = true;
 
+	size_t written = 0, written_prev = 0;
 	putchar('(');
 	for (s[0] = 1; s[0] < CODEPOINT_MAX; s[0]++)
 	{
 		unsigned char bytes[UTF8_LEN] = {0};
 		UChar haystack[UTF8_LEN] = {0};
-		size_t written = 0;
 		UBool err = FALSE;
+		written = 0;
 
 		status = U_ZERO_ERROR;
 		u_strFromUTF32(haystack, UTF8_LEN, NULL, s, -1, &status);
@@ -73,17 +74,18 @@ int main(int argc, char **argv)
 				if (!first_streak)
 					putchar('|');
 				first_streak = false;
-				for (size_t i = 0; i < written-1; i++)
+				for (size_t i = 0; i < written_prev-1; i++)
 					printf("\\x%02x", bytes_prev[i]);
-				if (bytes_first[written-1] == bytes_prev[written-1])
-					printf("\\x%02x", bytes_first[written-1]);
+				if (bytes_first[written_prev-1] == bytes_prev[written_prev-1])
+					printf("\\x%02x", bytes_first[written_prev-1]);
 				else
 					printf("[\\x%02x-\\x%02x]",
-							bytes_first[written-1], bytes_prev[written-1]);
+							bytes_first[written_prev-1], bytes_prev[written_prev-1]);
 			}
 			memcpy(bytes_first, bytes, sizeof bytes);
 		}
 		memcpy(bytes_prev, bytes, sizeof bytes);
+		written_prev = written;
 	}
 	puts(")");
 	uregex_close(r);
